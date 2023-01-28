@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Auto Video Slider</title>
+        <style>
+            :root {
+                /* ===== Colors ==== */
+                --slider-bg-color: #777;
+                --slider-progress-color: #fff;
+            }
+            *,
+            ::before,
+            ::after {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            .container {
+                width: 80vw;
+                height: 80vh;
+                margin: 10vh auto;
+                overflow: hidden;
+                position: relative;
+            }
+            .video__box {
+                height: 100%;
+                width: 100%;
+            }
+            iframe {
+                display: block;
+                height: 100%;
+                width: 100%;
+            }
+            .slider__box {
+                position: absolute;
+                top: 85%;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 32vw;
+                height: 30px;
+                overflow: hidden;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                /* z-index: 1; */
+            }
+            .slider__box > .slide {
+                width: 30%;
+                height: 8px;
+                background: var(--slider-bg-color);
+                cursor: pointer;
+            }
+            .slide-one, .slide-two, .slide-three {
+                position: relative;
+            }
+            .slide-one::after,
+            .slide-two::after,
+            .slide-three::after {
+                content: ' ';
+                display: block;
+                position: absolute;
+                height: 100%;
+                background-color: var(--slider-progress-color);
+                z-index: 10;
+            }
+            .slide-one::after {
+                width: var(--after-slide1-width, 0%);
+            }
+            .slide-two::after {
+                width: var(--after-slide2-width, 0%);
+            }
+            .slide-three::after {
+                width: var(--after-slide3-width, 0%);
+            }
+            .ytplayer {
+                pointer-events: none;
+            }
+            
+        </style>
+    </head>
+    <body onload="init()">
+        <div class="container">
+            <div class="video__box">
+                <iframe 
+                    id="frame1"
+                    class="ytplayer"
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.youtube.com/embed/a9__D53WsUs?autoplay=1&mute=1&showinfo=0&controls=0&loop=1&playlist=a9__D53WsUs" 
+                    title="Video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="true" 
+                >
+                </iframe>
+
+                <iframe 
+                    id="frame2"
+                    class="ytplayer"
+                    width="100%" 
+                    height="100%" 
+                    src="https://www.dailymotion.com/embed/video/x5zhzj?autoplay=true&mute=true&controls=false&loop=true&playlist=x5zhzj" 
+                    title="Video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="true" 
+                >
+                </iframe>
+
+                <iframe 
+                    id="frame3"
+                    class="ytplayer"
+                    width="100%" 
+                    height="100%" 
+                    src="https://player.vimeo.com/video/305727388?h=e4d94b5cb3&autoplay=1&muted=1&controls=0&loop=1" 
+                    title="Video player" 
+                    frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen="true" 
+                >
+                </iframe>
+
+            </div>
+            <div class="slider__box">
+                <div class="slide slide-one"></div>
+                <div class="slide slide-two"></div>
+                <div class="slide slide-three"></div>
+            </div>
+        </div>
+
+        <!-- Javascript code below -->
+        <script>
+            // Define state
+            let currentWidth = 0;
+            let which_slide = 1;
+            let animationDelay = 5000; // 5000 milliseconds = 5 seconds
+            let step = animationDelay / 100;
+            let start;
+            let request;
+
+            // Define requestAnimationFrame
+            let requestAnimationFrame = window.requestAnimationFrame ||
+                                        window.mozRequestAnimationFrame ||
+                                        window.webkitRequestAnimationFrame ||
+                                        window.msRequestAnimationFrame;
+                                    
+            // First select the elements
+            const videoBox = document.querySelector('.video__box');
+            const frameOne = document.querySelector('#frame1');
+            const frameTwo = document.querySelector('#frame2');
+            const frameThree = document.querySelector('#frame3');
+            const slideOne = document.querySelector('.slide-one');
+            const slideTwo = document.querySelector('.slide-two');
+            const slideThree = document.querySelector('.slide-three');
+
+            slideOne.addEventListener('click', () => {
+                cancelAnimationFrame(request);
+                currentWidth = 0;
+                handleProgressBar();
+                which_slide = 1;
+                handleBackgroundVideo();
+                start = Date.now();
+                showSlide();
+            });
+
+            slideTwo.addEventListener('click', () => {
+                cancelAnimationFrame(request);
+                currentWidth = 0;
+                handleProgressBar();
+                which_slide = 2;
+                handleBackgroundVideo();
+                start = Date.now();
+                showSlide();
+            });
+
+            slideThree.addEventListener('click', () => {
+                cancelAnimationFrame(request);
+                currentWidth = 0;
+                handleProgressBar();
+                which_slide = 3;
+                handleBackgroundVideo();
+                start = Date.now();
+                showSlide();
+            });
+
+            // Call init()
+            function init() {
+                start = Date.now();
+                showSlide();
+            }
+             
+            function handleProgressBar(){
+                switch(which_slide) {
+                    case 1:
+                        slideOne.style.setProperty('--after-slide1-width', `${currentWidth}%`);
+                        break;
+                    case 2:
+                        slideTwo.style.setProperty('--after-slide2-width', `${currentWidth}%`);
+                        break;
+                    case 3:
+                        slideThree.style.setProperty('--after-slide3-width', `${currentWidth}%`);
+                        break;
+                }
+            }
+
+
+            function showSlide() {
+                let now = Date.now();
+                let diff = now - start;
+                currentWidth = diff / step;
+                if(currentWidth <= 100){
+                    handleProgressBar();
+                } else if(currentWidth > 100) {
+                    currentWidth = 0;
+                    handleProgressBar();
+                    start = Date.now();
+                    if(which_slide === 3)
+                        which_slide = 1;
+                    else
+                        which_slide++;
+                    handleBackgroundVideo();
+                }
+                request = requestAnimationFrame(showSlide);
+            }
+
+            function handleBackgroundVideo() {
+                switch(which_slide) {
+                    case 1:
+                        frameOne.style.display = 'block';
+                        frameTwo.style.display = 'none';
+                        frameThree.style.display = 'none';
+                        break;
+                    case 2:
+                        frameOne.style.display = 'none';
+                        frameTwo.style.display = 'block';
+                        frameThree.style.display = 'none';
+                        break;
+                    case 3:
+                        frameOne.style.display = 'none';
+                        frameTwo.style.display = 'none';
+                        frameThree.style.display = 'block';
+                        break;
+                }
+            }
+        </script>
+    </body>
+</html>
